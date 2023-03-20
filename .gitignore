@@ -491,3 +491,6 @@ cmake/
 ./bin/integrate_parallel_queue
 
 ./plots
+
+# virtual environment
+./venv
