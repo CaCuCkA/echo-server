@@ -15,7 +15,7 @@ using tcp = boost::asio::ip::tcp;
 
 int main(int args, char* argv[])
 {
-    auto const port = 8083;
+    const uint16_t port = 8083;
     const uint8_t threads=std::thread::hardware_concurrency();
     net::io_context ioc{threads};
     std::make_shared<Listener>(ioc, port)->AsyncAccept();
