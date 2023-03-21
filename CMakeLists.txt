@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.8)
 
 set( CMAKE_CXX_STANDARD 17 )
-set( PROJECT_NAME_ONE "sync_server" )
-set ( PROJECT_NAME_TWO "async_server" )
+set( BOOST_SYNC_SERVER "boost_sync_server" )
+set( BOOST_ASYNC_SERVER "boost_async_server" )
+set( WEBSOCKET_SYNC_SERVER "websocket_sync_server" )
 
 project( ${PROJECT_NAME_ONE} LANGUAGES CXX )
 
@@ -21,20 +22,22 @@ include_directories( src )
 include_directories( ${Boost_INCLUDE_DIRS} )
 
 
-add_executable( ${PROJECT_NAME_ONE} ${SRC}/SyncServer.cpp)
+add_executable( ${BOOST_SYNC_SERVER} ${SRC}/BoostSyncServer.cpp)
 
-add_executable( ${PROJECT_NAME_TWO} ${SRC}/AsyncServer.cpp
+add_executable( ${BOOST_ASYNC_SERVER} ${SRC}/BoostAsyncServer.cpp
         ${INC}/Listener.h       ${SRC}/Listener.cpp
         ${INC}/EchoWebSocket.h  ${SRC}/EchoWebSocket.cpp)
 
-set_target_properties( ${PROJECT_NAME_ONE} PROPERTIES
+add_executable( ${WEBSOCKET_SYNC_SERVER} ${SRC}/WebSocketSyncServer.cpp)
+
+set_target_properties( ${BOOST_SYNC_SERVER} PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
         )
 
-set_target_properties( ${PROJECT_NAME_TWO} PROPERTIES
+set_target_properties( ${BOOST_ASYNC_SERVER} PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
