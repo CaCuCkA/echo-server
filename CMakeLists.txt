@@ -4,6 +4,7 @@ set( CMAKE_CXX_STANDARD 17 )
 set( BOOST_SYNC_SERVER "boost_sync_server" )
 set( BOOST_ASYNC_SERVER "boost_async_server" )
 set( WEBSOCKET_SYNC_SERVER "websocket_sync_server" )
+set( WEBSOCKET_MULTI_SERVER "websocket_multi_server" )
 
 project( ${PROJECT_NAME_ONE} LANGUAGES CXX )
 
@@ -29,6 +30,11 @@ add_executable( ${BOOST_ASYNC_SERVER} ${SRC}/BoostAsyncServer.cpp
         ${INC}/EchoWebSocket.h  ${SRC}/EchoWebSocket.cpp)
 
 add_executable( ${WEBSOCKET_SYNC_SERVER} ${SRC}/WebSocketSyncServer.cpp)
+
+add_executable( ${WEBSOCKET_MULTI_SERVER} ${SRC}/WebSocketMultithreadServer.cpp
+                ${INC}/FunctionWrapper.h   ${INC}/ThreadSafeQueue.h
+                ${INC}/StaticThreadPool.h   ${INC}/JoinThreads.h
+                ${INC}/Utils.h)
 
 set_target_properties( ${BOOST_SYNC_SERVER} PROPERTIES
         CXX_STANDARD 17
