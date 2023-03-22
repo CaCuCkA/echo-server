@@ -59,5 +59,3 @@ void EchoWebSocket::Echo()
         self->Echo();
     });
 }
-
-

@@ -43,5 +43,4 @@ private:
     std::condition_variable m_not_empty;
     mutable std::mutex m_mutex;
 };
-
 #endif //THREAD_SAFE_QUEUE_H

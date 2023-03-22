@@ -1,5 +1,5 @@
-#ifndef ECHOWEBSOCKET_H
-#define ECHOWEBSOCKET_H
+#ifndef ECHO_WEBSOCKET_H
+#define ECHO_WEBSOCKET_H
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
@@ -11,6 +11,13 @@ using tcp = boost::asio::ip::tcp;
 class EchoWebSocket : public std::enable_shared_from_this<EchoWebSocket>
 {
 public:
+    EchoWebSocket() = delete;
+    ~EchoWebSocket() = default;
+    EchoWebSocket(const EchoWebSocket&) = delete;
+    EchoWebSocket& operator=(const EchoWebSocket&) = delete;
+    EchoWebSocket(EchoWebSocket&&) = delete;
+    EchoWebSocket& operator=(EchoWebSocket&&) = delete;
+
     EchoWebSocket(tcp::socket&& socket);
 
     void Run();
@@ -21,6 +28,5 @@ private:
 private:
     websocket::stream<beast::tcp_stream> m_websocket;
     beast::flat_buffer m_buffer;
-
 };
-#endif //ECHOWEBSOCKET_H
+#endif //ECHO_WEBSOCKET_H
