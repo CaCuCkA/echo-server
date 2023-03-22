@@ -25,6 +25,7 @@ class FunctionWrapper
             m_f();
         }
     };
+
 public:
     FunctionWrapper() = default;
     FunctionWrapper(const FunctionWrapper&) = delete;
@@ -52,6 +53,7 @@ public:
     {
         m_implement->Call();
     }
+
 private:
     std::unique_ptr<ImplementBase> m_implement;
 };
