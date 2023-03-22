@@ -1,3 +1,5 @@
+#include "Utils.h"
+
 #include <iostream>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -11,28 +13,18 @@ int main(int args, char* argv[])
 {
     int listening = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (listening == -1)
-    {
-        std::cerr << "Can`t create a socket!" << std::endl;
-        return -1;
-    }
+    Check(listening, "Can`t create a socket!");
 
     sockaddr_in hint{};
     hint.sin_family = AF_INET;
     hint.sin_port = htons(54000);
     inet_pton(AF_INET, "0.0.0.0", &hint.sin_addr);
 
-    if (bind(listening, reinterpret_cast<const sockaddr *>(&hint), sizeof(hint)) == -1)
-    {
-        std::cerr << "Can`t bind to IP/port" << std::endl;
-        return -2;
-    }
+    uint8_t expression = bind(listening, reinterpret_cast<const sockaddr *>(&hint), sizeof(hint));
+    Check(expression, "Can`t bind to IP/port");
 
-    if (listen(listening, SOMAXCONN) == -1)
-    {
-        std::cerr << "Can`t listen" << std::endl;
-        return -3;
-    }
+    expression =listen(listening, SOMAXCONN);
+    Check(expression, "Can`t listen");
 
     sockaddr_in client{};
     socklen_t clientSize = sizeof(client);
@@ -43,11 +35,7 @@ int main(int args, char* argv[])
                               reinterpret_cast<sockaddr *>(&client),
                               &clientSize);
 
-    if (clientSocket == -1)
-    {
-        std::cerr << "Problem with client connecting" << std::endl;
-        return -4;
-    }
+    Check(clientSocket, "Problem with client connecting");
 
     close(listening);
 
