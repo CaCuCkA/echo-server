@@ -484,12 +484,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# cmake build output
-cmake/
-
-# cmake build output
-./bin/integrate_parallel_queue
-
 ./plots
 
 # virtual environment
