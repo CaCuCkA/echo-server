@@ -17,6 +17,3 @@ class Const(object, metaclass=MetaConst):
 class Constants(Const):
     URL = "ws://localhost:8083"
     RANGE = 100000
-    PATH = "./bin/"
-    SYNC_SERVER_NAME = "sync_server"
-    ASYNC_SERVER_NAME = "async_server"

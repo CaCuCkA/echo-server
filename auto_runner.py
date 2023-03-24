@@ -13,7 +13,7 @@ async def echo():
         async with websockets.connect(Constants.URL) as websocket:
             await websocket.send(str())
             name = await websocket.recv()
-            print(name, end=" ", flush=True)
+            print("echo")
             sys.stdout.flush()
 
 
