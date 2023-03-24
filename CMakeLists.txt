@@ -25,6 +25,8 @@ endif ()
 include(cmake/CompilerWarnings.cmake)
 
 ####################################################################
+include_directories( include )
+include_directories( src )
 
 set( SRC ${CMAKE_SOURCE_DIR}/src )
 set( INC ${CMAKE_SOURCE_DIR}/include )
