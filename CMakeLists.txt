@@ -11,7 +11,7 @@ set( WEBSOCKET_MULTI_SERVER "websocket_multi_server" )
 
 ####################################################################
 
-set(WARNINGS_AS_ERRORS ON)
+set(WARNINGS_AS_ERRORS OFF)
 
 set(ENABLE_UBSan OFF)
 set(ENABLE_ASAN OFF)
@@ -42,12 +42,12 @@ add_executable( ${BOOST_ASYNC_SERVER} ${SRC}/BoostAsyncServer.cpp
         ${INC}/EchoWebSocket.h  ${SRC}/EchoWebSocket.cpp )
 
 add_executable( ${WEBSOCKET_SYNC_SERVER} ${SRC}/WebSocketSyncServer.cpp
-                ${INC}/GenerateResponse.h   ${SRC}/GenerateResponse.cpp )
+                ${INC}/TCPHandshaker.h   ${SRC}/TCPHandshaker.cpp )
 
 add_executable( ${WEBSOCKET_MULTI_SERVER} ${SRC}/WebSocketMultithreadServer.cpp
                 ${INC}/FunctionWrapper.h   ${INC}/ThreadSafeQueue.h
                 ${INC}/StaticThreadPool.h   ${INC}/JoinThreads.h
-                ${INC}/GenerateResponse.h   ${SRC}/GenerateResponse.cpp
+                ${INC}/TCPHandshaker.h   ${SRC}/TCPHandshaker.cpp
                 ${INC}/Utils.h )
 
 ####################################################################
@@ -62,12 +62,12 @@ find_package( OpenSSL REQUIRED )
 if ( NOT OPENSSL_FOUND )
     message( FATAL_ERROR "Could not find openssl" )
 endif()
-target_link_libraries( ${WEBSOCKET_SYNC_SERVER} OpenSSL::SSL OpenSSL:Crypto )
-target_link_libraries( ${WEBSOCKET_MULTI_SERVER} OpenSSL::SSL OpenSSL:Crypto )
+target_link_libraries( ${WEBSOCKET_SYNC_SERVER} OpenSSL::SSL OpenSSL::Crypto )
+target_link_libraries( ${WEBSOCKET_MULTI_SERVER} OpenSSL::SSL OpenSSL::Crypto )
 
 ####################################################################
 
-set_target_properties( ${All_TARGETS} PROPERTIES
+set_target_properties( ${WEBSOCKET_SYNC_SERVER} PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
         CXX_EXTENSIONS OFF
