@@ -1,7 +1,6 @@
 import asyncio
 import sys
 
-import websockets
 
 from misc.constants import Constants
 
@@ -9,12 +8,10 @@ Constants = Constants()
 
 
 async def echo():
+    ws =  create_connection("ws://echo.websocket.events/")
     for x in range(Constants.RANGE):
-        async with websockets.connect(Constants.URL) as websocket:
-            await websocket.send(str())
-            name = await websocket.recv()
-            print("echo")
-            sys.stdout.flush()
+
+
 
 
 async def main():

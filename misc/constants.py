@@ -15,5 +15,5 @@ class Const(object, metaclass=MetaConst):
 
 
 class Constants(Const):
-    URL = "ws://localhost:8083"
+    URL = "ws://127.0.0.1:8083"
     RANGE = 100000
