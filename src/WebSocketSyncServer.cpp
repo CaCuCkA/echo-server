@@ -1,4 +1,5 @@
 #include "Utils.h"
+#include "TCPHandshaker.h"
 
 #include <iostream>
 #include <unistd.h>
@@ -17,8 +18,8 @@ int main(int args, char* argv[])
 
     sockaddr_in hint{};
     hint.sin_family = AF_INET;
-    hint.sin_port = htons(54000);
-    inet_pton(AF_INET, "0.0.0.0", &hint.sin_addr);
+    hint.sin_port = htons(8083);
+    inet_pton(AF_INET, "127.0.0.1", &hint.sin_addr);
 
     uint8_t expression = bind(listening, reinterpret_cast<const sockaddr *>(&hint), sizeof(hint));
     Check(expression, "Can`t bind to IP/port");
@@ -37,10 +38,7 @@ int main(int args, char* argv[])
 
     Check(clientSocket, "Problem with client connecting");
 
-    close(listening);
-
-    memset(host, 0, NI_MAXHOST);
-    memset(service, 0, NI_MAXSERV);
+//    close(listening);
 
     int result = getnameinfo(reinterpret_cast<sockaddr *>(&client),
                              sizeof(client),
@@ -49,6 +47,7 @@ int main(int args, char* argv[])
                              service,
                              NI_MAXSERV,
                              0);
+
 
     if (result)
     {
@@ -62,16 +61,22 @@ int main(int args, char* argv[])
 
     char buffer[4096];
 
+    memset(buffer, 0, 4096);
+
+    size_t bytesReceive = recv(clientSocket, buffer, 4096, 0);
+
+    TCPHandshaker tcpHandshaker(static_cast<int>(bytesReceive), buffer);
+    result = tcpHandshaker.PerformWebsocketHandshake(clientSocket);
+
+    Check(result, "Failed to send WebSocket upgrade response");
+
     while (true)
     {
         memset(buffer, 0, 4096);
 
-        int bytesReceive = recv(clientSocket, buffer, 4096, 0);
-        if (bytesReceive == -1)
-        {
-            std::cerr << "There was a connect issue" << std::endl;
-            break;
-        }
+        bytesReceive = recv(clientSocket, buffer, 4096, 0);
+
+        Check(static_cast<int>(bytesReceive), "There was a connect issue");
 
         if (bytesReceive == 0)
         {

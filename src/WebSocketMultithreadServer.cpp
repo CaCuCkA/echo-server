@@ -4,7 +4,6 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <netdb.h>
 #include <arpa/inet.h>
 #include <string>
 #include <cstring>
@@ -27,26 +26,58 @@ int main(int args, char* argv[])
 
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
-    serverAddress.sin_port= htons(54000);
+    serverAddress.sin_port= htons(8083);
 
     expression = bind(serverSocket, reinterpret_cast<SA*>(&serverAddress), sizeof(serverAddress));
     Check(expression, "Can`t bind to IP/port");
 
     expression = listen(serverSocket, SOMAXCONN);
     Check(expression, "Can`t listen");
-    
-    // TODO
+
+    auto task = [](int clientSocket)
+    {
+        char buffer[4096];
+        while (true)
+        {
+            memset(buffer, 0, 4096);
+
+            int bytesReceive = recv(clientSocket, buffer, 4096, 0);
+
+            if (bytesReceive == -1)
+            {
+                std::cerr << "There was a connect issue" << std::endl;
+                break;
+            }
+
+            if (bytesReceive == 0)
+            {
+                std::cout << "The client disconnected" << std::endl;
+                break;
+            }
+
+            std::cout << "Received: " << std::string(buffer, 0, bytesReceive) << std::endl;
+
+            send(clientSocket, buffer, bytesReceive + 1, 0);
+        }
+
+        close(clientSocket);
+    };
+
+    StaticThreadPool threadPool;
+
     while (true)
     {
-        std::cout << "Waiting for connections..." << std::endl;
+        socklen_t clientSize = sizeof(clientAddress);
+        clientSocket = accept(serverSocket, reinterpret_cast<SA *>(&clientAddress), &clientSize);
 
-        addressSize = sizeof(SA_IN);
-        clientSocket = accept(serverSocket, reinterpret_cast<SA*>(&clientAddress),
-                              reinterpret_cast<socklen_t*>(&addressSize));
         Check(clientSocket, "Problem with client connecting");
-        std::cout << "Connected!" << std::endl;
+        std::cout << "Connected " << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port)
+                << ", socket: " << clientSocket << std::endl;
 
-        HandleConnection(clientSocket);
+       threadPool.Submit([=]()
+                          {
+                                return task(clientSocket);
+                          });
     }
     return 0;
 }
