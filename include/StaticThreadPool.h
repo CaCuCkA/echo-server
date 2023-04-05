@@ -48,6 +48,7 @@ public:
         typedef typename std::result_of<FunctionType()>::type resultType;
         std::packaged_task<resultType()> task(std::move(function));
         std::future<resultType> result(task.get_future());
+        m_work_queue.Enque(std::move(task));
         return result;
     }
 
