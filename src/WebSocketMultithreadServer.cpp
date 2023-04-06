@@ -1,83 +1,99 @@
-#include "StaticThreadPool.h"
 #include "Utils.h"
 
 #include <iostream>
+#include <vector>
+#include <thread>
+#ifdef __linux__
 #include <unistd.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string>
-#include <cstring>
+using socket_type = int;
+using address_type = sockaddr_in;
+#elif _WIN32
+#include <ws2tcpip.h>
+#pragma comment(lib, "Ws2_32.lib")
+using socket_type = SOCKET;
+using address_type = SOCKADDR_IN;
+#endif
 
-typedef sockaddr_in SA_IN;
-typedef sockaddr SA;
-
-int main(int args, char* argv[])
+namespace
 {
-    uint16_t serverSocket;
-    uint16_t clientSocket;
-    int addressSize;
-    uint8_t expression;
+    constexpr uint16_t kPort = 12345;
+    constexpr int kBacklog = 5;
+}
 
-    SA_IN serverAddress;
-    SA_IN clientAddress;
-
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    Check(serverSocket, "Can`t create a socket!");
-
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
-    serverAddress.sin_port= htons(8083);
-
-    expression = bind(serverSocket, reinterpret_cast<SA*>(&serverAddress), sizeof(serverAddress));
-    Check(expression, "Can`t bind to IP/port");
-
-    expression = listen(serverSocket, SOMAXCONN);
-    Check(expression, "Can`t listen");
-
-    auto task = [](int clientSocket)
+int main()
+{
+#ifdef _WIN32
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != 0)
     {
-        char buffer[4096];
-        while (true)
-        {
-            memset(buffer, 0, 4096);
+        std::cerr << "WSAStartup failed with error: " << result << std::endl;
+        return 1;
+    }
+#endif
 
-            int bytesReceive = recv(clientSocket, buffer, 4096, 0);
+    socket_type serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == -1)
+    {
+        std::cerr << "Failed to create socket" << std::endl;
+        return 1;
+    }
 
-            if (bytesReceive == -1)
-            {
-                std::cerr << "There was a connect issue" << std::endl;
-                break;
-            }
+    address_type address{};
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
+    address.sin_port = htons(kPort);
 
-            if (bytesReceive == 0)
-            {
-                std::cout << "The client disconnected" << std::endl;
-                break;
-            }
+    if (bind(serverSocket, (sockaddr*)&address, sizeof(address)) == -1)
+    {
+        std::cerr << "Failed to bind socket" << std::endl;
+#ifdef _WIN32
+        closesocket(serverSocket);
+#elif __linux__
+        close(serverSocket);
+#endif
+        exit(1);
+    }
 
-            std::cout << "Received: " << std::string(buffer, 0, bytesReceive) << std::endl;
+    if (listen(serverSocket, SOMAXCONN) == -1)
+    {
+        std::cerr << "Failed to listen on socket" << std::endl;
+#ifdef _WIN32
+        closesocket(serverSocket);
+#elif __linux__
+        close(serverSocket);
+#endif
+        exit(1);
+    }
 
-            send(clientSocket, buffer, bytesReceive + 1, 0);
-        }
+    std::cout << "Listening on port " << kPort << std::endl;
 
-        close(clientSocket);
-    };
-
-    StaticThreadPool threadPool;
+    std::vector<std::thread> threads;
 
     while (true)
     {
-        socklen_t clientSize = sizeof(clientAddress);
-        clientSocket = accept(serverSocket, reinterpret_cast<SA *>(&clientAddress), &clientSize);
+        socket_type clientSocket = accept(serverSocket, nullptr, nullptr);
+        if (clientSocket == -1)
+        {
+            std::cerr << "Failed to accept client connection" << std::endl;
+            continue;
+        }
 
-        Check(clientSocket, "Problem with client connecting");
-        std::cout << "Connected " << inet_ntoa(clientAddress.sin_addr) << ":" << ntohs(clientAddress.sin_port)
-                << ", socket: " << clientSocket << std::endl;
+        std::cout << "Accepted connection from client: " << clientSocket << std::endl;
 
-       threadPool.Submit([=]()
-                          {
-                                return task(clientSocket);
-                          });
+        threads.emplace_back(HandleClient, clientSocket);
     }
+
+#ifdef _WIN32
+    closesocket(serverSocket);
+    WSACleanup();
+#elif __linux__
+    close(serverSocket);
+#endif
+
     return 0;
 }

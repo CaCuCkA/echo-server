@@ -1,95 +1,132 @@
-#include "Utils.h"
-#include "TCPHandshaker.h"
-
 #include <iostream>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <string>
 #include <cstring>
 
+#ifdef __linux__
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+using socket_type = int;
+using address_type = sockaddr_in;
+#elif _WIN32
+#include <ws2tcpip.h>
+#pragma comment(lib, "Ws2_32.lib")
+using socket_type = SOCKET;
+using address_type = SOCKADDR_IN;
+#endif
 
-int main(int args, char* argv[])
+namespace
 {
-    int listening = socket(AF_INET, SOCK_STREAM, 0);
+    constexpr uint16_t kPort = 12345;
+    constexpr int kBacklog = 5;
+}
 
-    Check(listening, "Can`t create a socket!");
-
-    sockaddr_in hint{};
-    hint.sin_family = AF_INET;
-    hint.sin_port = htons(8083);
-    inet_pton(AF_INET, "127.0.0.1", &hint.sin_addr);
-
-    uint8_t expression = bind(listening, reinterpret_cast<const sockaddr *>(&hint), sizeof(hint));
-    Check(expression, "Can`t bind to IP/port");
-
-    expression =listen(listening, SOMAXCONN);
-    Check(expression, "Can`t listen");
-
-    sockaddr_in client{};
-    socklen_t clientSize = sizeof(client);
-    char host[NI_MAXHOST];
-    char service[NI_MAXSERV];
-
-    int clientSocket = accept(listening,
-                              reinterpret_cast<sockaddr *>(&client),
-                              &clientSize);
-
-    Check(clientSocket, "Problem with client connecting");
-
-//    close(listening);
-
-    int result = getnameinfo(reinterpret_cast<sockaddr *>(&client),
-                             sizeof(client),
-                             host,
-                             NI_MAXHOST,
-                             service,
-                             NI_MAXSERV,
-                             0);
-
-
-    if (result)
+int main()
+{
+#ifdef _WIN32
+    WSADATA wsData;
+    int iResult = WSAStartup(MAKEWORD(2, 2), &wsData);
+    if (iResult != 0)
     {
-        std::cout << host << " connected on service " << service << std::endl;
+        std::cerr << "WSAStartup failed with error: " << iResult << std::endl;
+        return 1;
     }
-    else
+#endif
+
+    socket_type serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == -1)
     {
-        inet_ntop(AF_INET, &client.sin_addr, host, NI_MAXHOST);
-        std::cout << host << " connected on " << ntohs(client.sin_port) << std::endl;
+        std::cerr << "Failed to create socket" << std::endl;
+        return 1;
     }
 
-    char buffer[4096];
+    address_type address{};
+    memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
+    address.sin_port = htons(kPort);
 
-    memset(buffer, 0, 4096);
+    if (bind(serverSocket, (sockaddr*)&address, sizeof(address)) == -1)
+    {
+        std::cerr << "Failed to bind socket" << std::endl;
+#ifdef __linux__
+        close(serverSocket);
+#elif _WIN32
+        WSACleanup();
+#endif
+        exit(1);
+    }
 
-    size_t bytesReceive = recv(clientSocket, buffer, 4096, 0);
+    if (listen(serverSocket, kBacklog) == -1)
+    {
+        std::cerr << "Failed to listen on socket" << std::endl;
+#ifdef __linux__
+        close(serverSocket);
+#elif _WIN32
+        WSACleanup();
+#endif
+        exit(1);
+    }
 
-    TCPHandshaker tcpHandshaker(static_cast<int>(bytesReceive), buffer);
-    result = tcpHandshaker.PerformWebsocketHandshake(clientSocket);
-
-    Check(result, "Failed to send WebSocket upgrade response");
+    std::cout << "Listening on port " << kPort << std::endl;
 
     while (true)
     {
-        memset(buffer, 0, 4096);
-
-        bytesReceive = recv(clientSocket, buffer, 4096, 0);
-
-        Check(static_cast<int>(bytesReceive), "There was a connect issue");
-
-        if (bytesReceive == 0)
+        socket_type clientSocket = accept(serverSocket, nullptr, nullptr);
+        if (clientSocket == -1)
         {
-            std::cout << "The client disconnected" << std::endl;
-            break;
+            std::cerr << "Failed to accept client connection" << std::endl;
+            continue;
         }
 
-        std::cout << "Received: " << std::string(buffer, 0, bytesReceive) << std::endl;
+        std::cout << "Accepted connection from client: " << clientSocket << std::endl;
 
-        send(clientSocket, buffer, bytesReceive + 1, 0);
+        char buffer[1024];
+        memset(buffer, 0, 1024);
+        int bytesReceived = recv(clientSocket, buffer, 1024, 0);
+        if (bytesReceived == -1)
+        {
+            std::cerr << "Failed to receive data from client" << std::endl;
+#ifdef __linux__
+            close(clientSocket);
+#elif _WIN32
+            closesocket(clientSocket);
+#endif
+            continue;
+        }
+
+        std::cout << "Received " << bytesReceived << " bytes of data: " << buffer << std::endl;
+
+        int bytesSent = send(clientSocket, buffer, bytesReceived, 0);
+        if (bytesSent == -1)
+        {
+            std::cerr << "Failed to send data to client" << std::endl;
+#ifdef __linux__
+            close(clientSocket);
+#elif _WIN32
+            closesocket(clientSocket);
+#endif
+            continue;
+        }
+
+        std::cout << "Sent " << bytesSent << " bytes of data: " << buffer << std::endl;
+
+#ifdef __linux__
+        close(clientSocket);
+#elif _WIN32
+        closesocket(clientSocket);
+#endif
     }
 
-    close(clientSocket);
+#ifdef __linux__
+    close(serverSocket);
+#elif _WIN32
+    closesocket(serverSocket);
+#endif
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
 
     return 0;
 }
