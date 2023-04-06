@@ -1,37 +1,35 @@
-import asyncio
-import sys
-import websockets
+import socket
+import threading
 
-from misc.constants import Constants
+# Define the server IP address and port
+SERVER_IP = "127.0.0.1"
+SERVER_PORT = 12345
 
-Constants = Constants()
-
-
-async def echo():
-    for x in range(Constants.RANGE):
-        async with websocket.connect(Constants.URL) as websocket:
-            await websocket.send(str())
-            name = await websocket.recv()
-            print(name, end=" ", flush=True)
-            await sys.stdout.flush()
+# Define the message to send to the server
+MESSAGE = "Hello from the client!"
 
 
+def send_echo():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-async def main():
-    await asyncio.wait([
-        echo(),
-        echo(),
-        echo(),
-        echo(),
-        echo(),
-        echo(),
-        echo(),
-        echo(),
-        echo(),
-        echo(),
-    ])
+    client_socket.connect((SERVER_IP, SERVER_PORT))
+    client_socket.sendall(MESSAGE.encode())
+
+    data = client_socket.recv(1024)
+
+    # print("Received:", data.decode())
+
+    client_socket.close()
+
+
+NUM_CLIENTS = 10000
+
+
+def main():
+    for i in range(NUM_CLIENTS):
+        t = threading.Thread(target=send_echo)
+        t.start()
 
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    main()
