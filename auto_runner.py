@@ -1,35 +1,31 @@
 import socket
 import threading
 
-# Define the server IP address and port
-SERVER_IP = "127.0.0.1"
-SERVER_PORT = 12345
 
-# Define the message to send to the server
-MESSAGE = "Hello from the client!"
-
-
-def send_echo():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    client_socket.connect((SERVER_IP, SERVER_PORT))
-    client_socket.sendall(MESSAGE.encode())
-
-    data = client_socket.recv(1024)
-
-    # print("Received:", data.decode())
-
-    client_socket.close()
+def send_message(sock, message):
+    sock.send(message.encode())
+    response = sock.recv(1024)
+    print(response.decode())
 
 
-NUM_CLIENTS = 10000
+def run_client(server_address):
+    for i in range(10000):
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect(server_address)
 
+        send_message(client_socket, "Hello, server!")
 
-def main():
-    for i in range(NUM_CLIENTS):
-        t = threading.Thread(target=send_echo)
-        t.start()
+        client_socket.close()
 
 
 if __name__ == '__main__':
-    main()
+    server_address = ('localhost', 12345)
+
+    client_thread_1 = threading.Thread(target=run_client, args=(server_address,))
+    client_thread_2 = threading.Thread(target=run_client, args=(server_address,))
+
+    client_thread_1.start()
+    client_thread_2.start()
+
+    client_thread_1.join()
+    client_thread_2.join()
