@@ -1,6 +1,10 @@
 #ifndef THREAD_SAFE_QUEUE_H
 #define THREAD_SAFE_QUEUE_H
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+# pragma once
+#endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
+
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -17,25 +21,24 @@ public:
     ThreadSafeQueue(ThreadSafeQueue&&) = delete;
     ThreadSafeQueue& operator=(ThreadSafeQueue&&) = delete;
 
-    void Enque(T&& val)
+    void Enque(T& val)
     {
         {
-            std::unique_lock lock(m_mutex);
+            std::unique_lock<std::mutex> lock(m_mutex);
             m_buffer.push_front(std::move(val));
         }
         m_not_empty.notify_one();
     }
 
-    bool TryDeque(T& val)
+    void Deque(T& val)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_buffer.empty())
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (m_buffer.empty())
         {
-            return false;
+            m_not_empty.wait(lock);
         }
         val = std::move(m_buffer.back());
         m_buffer.pop_back();
-        return true;
     }
 
 private:
