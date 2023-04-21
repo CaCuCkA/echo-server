@@ -14,6 +14,7 @@
 enum ErrorCodes
 {
     EC_OK = 0,
+    EC_NOT_ENOUGH_ARGS = 2,
 #if defined(_WIN32) || defined(WIN32)
     EC_CANT_CREATE_SOCKET = INVALID_SOCKET,
     EC_CANT_BIND_SOCKET = SOCKET_ERROR,
