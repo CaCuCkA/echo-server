@@ -25,6 +25,8 @@ namespace cross_types
     typedef SOCKET socket_type;
     typedef SOCKADDR_IN address_type;
     typedef SOCKADDR socket_address;
+    typedef int address_length;
+    typedef int recv_type;
 #define CLOSE_SOCKET(socket) do \
 {                               \
     closesocket(socket)         \
@@ -34,6 +36,8 @@ namespace cross_types
     typedef int socket_type;
     typedef sockaddr_in address_type;
     typedef sockaddr socket_address;
+    typedef socklen_t address_len;
+    typedef ssize_t recv_type;
 #define CLOSE_SOCKET(socket) close(socket)
 #endif // defined(_WIN32) || defined(WIN32)
 }
