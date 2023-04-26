@@ -15,7 +15,7 @@ class Server
 {
 public:
     Server() = default;
-    ~Server() = default;
+    virtual ~Server() = default;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
     Server(Server&&) = delete;
@@ -23,7 +23,7 @@ public:
 
     virtual void Run() = 0;
 
-private:
+protected:
     static cross_types::address_type MakeAddress(std::string&& t_address, uint16_t t_port);
     void Create(cross_types::socket_type& t_socket);
     void Bind(cross_types::socket_type& t_socket, cross_types::address_type& t_address);
@@ -38,8 +38,5 @@ private:
 
     cross_types::recv_type Read(cross_types::socket_type& t_socket, char* buffer, uint16_t bufferLength);
     void Send(cross_types::socket_type& t_socket, char* buffer, cross_types::recv_type& bytesRecv);
-
-private:
-    cross_types::socket_type m_socket;
 };
 #endif //ECHO_SERVER_SERVER_H
