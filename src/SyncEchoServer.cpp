@@ -34,6 +34,7 @@ void SyncEchoServer::Run()
             CLOSE_SOCKET(clientSocket);
             break;
         }
+        CLOSE_SOCKET(clientSocket);
     }
 }
 

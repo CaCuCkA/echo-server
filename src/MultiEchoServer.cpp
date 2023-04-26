@@ -15,6 +15,11 @@ m_amountOfThreads(t_amountOfThreads)
     Listen(m_socket);
 }
 
+MultiEchoServer::~MultiEchoServer() noexcept
+{
+    CLOSE_SOCKET(m_socket);
+}
+
 void MultiEchoServer::Run()
 {
     ThreadSafeQueue<socket_type> usedSocketQueue;
