@@ -5,38 +5,41 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
-#include "Base.h"
 #include "CrossType.h"
+#include "Exception.h"
 
 #include <string>
 #include <functional>
 
-
-class Server : Base
+class Server
 {
 public:
-    Server() = delete;
+    Server() = default;
+    ~Server() = default;
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
     Server(Server&&) = delete;
     Server& operator=(Server&&) = delete;
 
-    Server(std::string  t_address, uint16_t t_port, const std::function<void(cross_types::socket_type&)>& t_function);
-    ~Server() override = default;
-
-    void Run();
+    virtual void Run() = 0;
 
 private:
-    cross_types::address_type MakeAddress() override;
+    static cross_types::address_type MakeAddress(std::string&& t_address, uint16_t t_port);
+    void Create(cross_types::socket_type& t_socket);
+    void Bind(cross_types::socket_type& t_socket, cross_types::address_type& t_address);
+    void Listen(cross_types::socket_type& t_socket);
 
-    void Create(cross_types::socket_type& socket) override;
-    void Bind(cross_types::socket_type& socket) override;
-    void Listen(cross_types::socket_type& socket) override;
+    void Accept(cross_types::socket_type& t_socket, cross_types::socket_type& listeningSocket,
+                cross_types::socket_address* socketAddress, cross_types::address_len* addressLength);
+    void Accept(cross_types::socket_type& t_socket, cross_types::socket_type& listeningSocket);
+    cross_types::socket_type
+    Accept(cross_types::socket_type& listeningSocket, cross_types::socket_address* socketAddress,
+                cross_types::address_len* addressLength);
+
+    cross_types::recv_type Read(cross_types::socket_type& t_socket, char* buffer, uint16_t bufferLength);
+    void Send(cross_types::socket_type& t_socket, char* buffer, cross_types::recv_type& bytesRecv);
 
 private:
-    std::string m_address;
-    uint16_t m_port;
-    std::function<void(cross_types::socket_type&)> m_function;
+    cross_types::socket_type m_socket;
 };
-
 #endif //ECHO_SERVER_SERVER_H
