@@ -13,6 +13,8 @@
 #include <string>
 #include <functional>
 
+#define BUFFER_SIZE 1028
+
 class Server
 {
 public:
