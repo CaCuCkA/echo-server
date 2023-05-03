@@ -23,12 +23,7 @@ inline void SetSocketFlag(SocketType& t_socket, Args... args)
         throw EXCEPTION(EC_CANT_SET_FLAG_TO_SOCKET, "Failed to set socket flag");
     }
 }
-
-inline bool
 #else
-
-#include <unistd.h>
-#include <fcntl.h>
 #define CLOSE_SOCKET(socket) close(socket)
 
 template <typename SocketType, typename ...Args>
@@ -50,16 +45,6 @@ inline void SetSocketFlag(SocketType& t_socket, Args... args)
     {
         throw EXCEPTION(EC_CANT_SET_FLAG_TO_SOCKET, "Failed to set socket flag");
     }
-}
-
-inline bool isHasFlag(cross_types::socket_type& t_socket, int flag)
-{
-    int currentFlag = fcntl(t_socket, F_GETFL, 0);
-    if (currentFlag == EC_CANT_GET_FLAG)
-    {
-        throw EXCEPTION(EC_CANT_GET_FLAG, "Failed to get socket`s flag");
-    }
-    return currentFlag & flag;
 }
 #endif
 

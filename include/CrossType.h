@@ -15,7 +15,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <bits/fcntl.h>
+#include <fcntl.h>
+#include <unistd.h>
 #else
 #error "Cannot detect OS"
 #endif // detect os for including libs
