@@ -47,6 +47,11 @@ void Server::Listen(cross_types::socket_type &t_socket)
     }
 }
 
+void Server::MakeSocketNonBlocking(cross_types::socket_type &t_socket)
+{
+    SetSocketFlag(t_socket, NON_BLOCK, WIN_FLAG);
+}
+
 void Server::Accept(cross_types::socket_type &t_socket, cross_types::socket_type &listeningSocket,
                     cross_types::socket_address *socketAddress, cross_types::address_len *addressLength)
 {
@@ -82,12 +87,14 @@ cross_types::recv_type Server::Read(cross_types::socket_type &t_socket, char *bu
     return bytesRecv;
 }
 
-void Server::Send(cross_types::socket_type &t_socket, char *buffer, cross_types::recv_type &bytesRecv)
+cross_types::send_type
+Server::Send(cross_types::socket_type &t_socket, char *buffer, cross_types::recv_type &bytesRecv, int flag)
 {
-    auto error = send(t_socket, buffer, bytesRecv, 0);
-    if (error == EC_CANT_SEND_DATA)
+    auto sendBytes = send(t_socket, buffer, bytesRecv, flag);
+    if (sendBytes == EC_CANT_SEND_DATA)
     {
         CLOSE_SOCKET(t_socket);
         throw EXCEPTION(EC_CANT_SEND_DATA, "Failed to send data from socket");
     }
+    return sendBytes;
 }
