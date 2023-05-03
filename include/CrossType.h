@@ -15,9 +15,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <bits/fcntl.h>
 #else
 #error "Cannot detect OS"
 #endif // detect os for including libs
+#define BUFFER_SIZE 2048
 
 namespace cross_types
 {
@@ -27,18 +29,20 @@ namespace cross_types
     typedef SOCKADDR socket_address;
     typedef int address_length;
     typedef int recv_type;
-#define CLOSE_SOCKET(socket) do \
-{                               \
-    closesocket(socket)         \
-    WSACleanup();               \
-} while (0)
+    typedef int send_type;
+#define NON_BLOCK 1
+#define WIN_FLAG FIONBIO
 #else
     typedef int socket_type;
     typedef sockaddr_in address_type;
     typedef sockaddr socket_address;
     typedef socklen_t address_len;
     typedef ssize_t recv_type;
-#define CLOSE_SOCKET(socket) close(socket)
+    typedef ssize_t send_type;
+#define NON_BLOCK O_NONBLOCK
+#define WIN_FLAG -1
 #endif // defined(_WIN32) || defined(WIN32)
 }
+
+
 #endif //ECHO_SERVER_CROSS_TYPE_H
