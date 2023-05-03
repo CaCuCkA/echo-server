@@ -22,6 +22,12 @@ public:
     MultiEchoServer& operator=(MultiEchoServer&&) = delete;
 
     MultiEchoServer(std::string&& t_address, uint16_t t_port, uint8_t t_amountOfThreads);
+    static MultiEchoServer& Get(std::string&& t_address, uint16_t t_port, uint8_t t_amountOfThreads)
+    {
+        static MultiEchoServer s_instance(std::move(t_address), t_port, t_amountOfThreads);
+        return s_instance;
+    }
+
     ~MultiEchoServer() override;
 
     void Run() override;

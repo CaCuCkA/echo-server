@@ -41,7 +41,7 @@ void MultiEchoServer::Run()
             while (true)
             {
                 refreshedSocketQueue.Deque(clientSocket);
-                memset(buffer, 0, bufferSize);
+                memset(buffer, 0, BUFFER_SIZE);
                 try
                 {
                     bytesReceive = Read(clientSocket, buffer, BUFFER_SIZE);

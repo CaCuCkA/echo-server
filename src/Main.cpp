@@ -16,13 +16,11 @@ int main(int argc, char *argv[])
 
 #ifdef MULTI
     auto [address, port, amountOfThreads] = ParseValues(argv);
-    MultiEchoServer server(std::move(address), port, amountOfThreads);
+    MultiEchoServer::Get(std::move(address), port, amountOfThreads).Run();
 #else
     auto [address, port] = ParseValues(argv);
-    SyncEchoServer server(std::move(address), port);
+    SyncEchoServer::Get(std::move(address), port).Run();
 #endif
-
-    server.Run();
 
     return 0;
 }

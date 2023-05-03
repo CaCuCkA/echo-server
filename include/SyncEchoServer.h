@@ -24,6 +24,12 @@ public:
     SyncEchoServer(std::string&& t_address, uint16_t t_port);
     ~SyncEchoServer() override;
 
+    static SyncEchoServer& Get(std::string&& t_address, uint16_t t_port)
+    {
+        static SyncEchoServer s_instance(std::move(t_address), t_port);
+        return s_instance;
+    }
+
     void Run() override;
 
 private:

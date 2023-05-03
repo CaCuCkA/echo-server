@@ -48,6 +48,8 @@ add_executable( ${PROJECT_NAME_TWO} 			${COMMON_FILES}
 target_compile_definitions(${PROJECT_NAME_ONE} PRIVATE SYNC)
 target_compile_definitions(${PROJECT_NAME_TWO} PRIVATE MULTI)
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
 set_target_properties( ${PROJECT_NAME_ONE} PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
