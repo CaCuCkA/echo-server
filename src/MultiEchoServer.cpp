@@ -34,8 +34,7 @@ void MultiEchoServer::Run()
         usedSocketQueue.Enque(socket);
         std::thread clientThread {[&usedSocketQueue, &refreshedSocketQueue, this]()
         {
-            char buffer[1028];
-            uint16_t bufferSize = 1028;
+            char buffer[BUFFER_SIZE];
             cross_types::recv_type bytesReceive;
             socket_type clientSocket;
 
@@ -45,7 +44,7 @@ void MultiEchoServer::Run()
                 memset(buffer, 0, bufferSize);
                 try
                 {
-                    bytesReceive = Read(clientSocket, buffer, bufferSize);
+                    bytesReceive = Read(clientSocket, buffer, BUFFER_SIZE);
                     Send(clientSocket, buffer, bytesReceive);
                 }
                 catch(...)

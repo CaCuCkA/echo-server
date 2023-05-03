@@ -16,8 +16,7 @@ SyncEchoServer::~SyncEchoServer() noexcept
 
 void SyncEchoServer::Run()
 {
-    char buffer[1028];
-    uint16_t bufferSize = 1028;
+    char buffer[BUFFER_SIZE];
     cross_types::recv_type bytesRecv;
     cross_types::socket_type clientSocket;
 
@@ -26,7 +25,7 @@ void SyncEchoServer::Run()
         try
         {
             Accept(clientSocket, m_socket);
-            bytesRecv = Read(clientSocket, buffer, bufferSize);
+            bytesRecv = Read(clientSocket, buffer, BUFFER_SIZE);
             Send(clientSocket, buffer, bytesRecv);
         }
         catch(...)
