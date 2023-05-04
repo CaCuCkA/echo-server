@@ -9,7 +9,7 @@ def send_message(sock, message):
 
 
 def run_client(server_address):
-    for i in range(10000):
+    for i in range(100000):
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect(server_address)
 
