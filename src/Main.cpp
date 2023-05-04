@@ -3,8 +3,10 @@
 
 #ifdef MULTI
 #include "MultiEchoServer.h"
-#else
+#elif SYNC
 #include "SyncEchoServer.h"
+#else
+#include "AsyncEchoServer.h"
 #endif
 
 int main(int argc, char *argv[])
@@ -16,11 +18,16 @@ int main(int argc, char *argv[])
 
 #ifdef MULTI
     auto [address, port, amountOfThreads] = ParseValues(argv);
-    MultiEchoServer::Get(std::move(address), port, amountOfThreads).Run();
+    MultiEchoServer server(std::move(address), port, amountOfThreads);
+#elif SYNC
+    auto [address, port] = ParseValues(argv);
+    SyncEchoServer server(std::move(address), port);
 #else
     auto [address, port] = ParseValues(argv);
-    SyncEchoServer::Get(std::move(address), port).Run();
+    AsyncEchoServer server(std::move(address), port);
 #endif
+
+    server.Run();
 
     return 0;
 }
