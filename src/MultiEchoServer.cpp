@@ -11,6 +11,7 @@ m_amountOfThreads(t_amountOfThreads)
 {
     cross_types::address_type serverAddress = MakeAddress(std::move(t_address), t_port);
     Create(m_socket);
+    MakeAddressReused();
     Bind(m_socket, serverAddress);
     Listen(m_socket);
 }
@@ -18,6 +19,12 @@ m_amountOfThreads(t_amountOfThreads)
 MultiEchoServer::~MultiEchoServer() noexcept
 {
     CLOSE_SOCKET(m_socket);
+}
+
+void MultiEchoServer::MakeAddressReused()
+{
+    int optionValue = 1;
+    SetSocketOptions(m_socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&optionValue), sizeof(int));
 }
 
 void MultiEchoServer::Run()

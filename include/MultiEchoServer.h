@@ -32,7 +32,7 @@ public:
 
     void Run() override;
 private:
-
+    void MakeAddressReused();
 private:
     uint8_t m_amountOfThreads;
     socket_type m_socket;
