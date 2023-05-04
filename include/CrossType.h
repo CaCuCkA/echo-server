@@ -20,7 +20,6 @@
 #else
 #error "Cannot detect OS"
 #endif // detect os for including libs
-#define BUFFER_SIZE 2048
 
 namespace cross_types
 {
@@ -31,6 +30,7 @@ namespace cross_types
     typedef int address_length;
     typedef int recv_type;
     typedef int send_type;
+    typedef char* option_type;
 #define NON_BLOCK 1
 #define WIN_FLAG FIONBIO
 #else
@@ -40,10 +40,9 @@ namespace cross_types
     typedef socklen_t address_len;
     typedef ssize_t recv_type;
     typedef ssize_t send_type;
+    typedef const void* option_type;
 #define NON_BLOCK O_NONBLOCK
 #define WIN_FLAG -1
 #endif // defined(_WIN32) || defined(WIN32)
 }
-
-
 #endif //ECHO_SERVER_CROSS_TYPE_H
