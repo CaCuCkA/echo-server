@@ -31,8 +31,11 @@ public:
     }
 
     void Run() override;
-
+private:
+    void MakeAddressReused();
+    void CleanBuffer();
 private:
     socket_type m_socket;
+    char m_buffer[BUFFER_SIZE];
 };
 #endif // ECHO_SERVER_SYNC_SERVER_H

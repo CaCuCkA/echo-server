@@ -1,3 +1,4 @@
+#include <cstring>
 #include "SyncEchoServer.h"
 
 
@@ -5,6 +6,7 @@ SyncEchoServer::SyncEchoServer(std::string &&t_address, uint16_t t_port)
 {
     cross_types::address_type serverAddress = MakeAddress(std::move(t_address), t_port);
     Create(m_socket);
+    MakeAddressReused();
     Bind(m_socket, serverAddress);
     Listen(m_socket);
 }
@@ -14,9 +16,19 @@ SyncEchoServer::~SyncEchoServer() noexcept
     CLOSE_SOCKET(m_socket);
 }
 
+void SyncEchoServer::MakeAddressReused()
+{
+    int optionValue = 1;
+    SetSocketOptions(m_socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&optionValue), sizeof(int));
+}
+
+void SyncEchoServer::CleanBuffer()
+{
+    memset(m_buffer, 0, BUFFER_SIZE);
+}
+
 void SyncEchoServer::Run()
 {
-    char buffer[BUFFER_SIZE];
     cross_types::recv_type bytesRecv;
     cross_types::socket_type clientSocket;
 
@@ -25,8 +37,9 @@ void SyncEchoServer::Run()
         try
         {
             Accept(clientSocket, m_socket);
-            bytesRecv = Read(clientSocket, buffer, BUFFER_SIZE);
-            Send(clientSocket, buffer, bytesRecv);
+            CleanBuffer();
+            bytesRecv = Read(clientSocket, m_buffer, BUFFER_SIZE);
+            Send(clientSocket, m_buffer, bytesRecv);
         }
         catch(...)
         {
@@ -35,5 +48,6 @@ void SyncEchoServer::Run()
         }
         CLOSE_SOCKET(clientSocket);
     }
+
 }
 
