@@ -32,8 +32,11 @@ protected:
     static void Create(cross_types::socket_type& t_socket);
     static void Bind(cross_types::socket_type& t_socket, cross_types::address_type& t_address);
     static void Listen(cross_types::socket_type& t_socket);
-    static void MakeSocketNonBlocking(cross_types::socket_type& t_socket);
-    static void Select();
+    static void Select(cross_types::socket_type& t_socket, fd_set* readfds = nullptr, fd_set* writefds = nullptr,
+                       fd_set* exceptionfds = nullptr, timeval* timeout = nullptr);
+    static void
+    SetSocketOptions(cross_types::socket_type& t_socket, int level, int socketOption, cross_types::option_type buffer,
+                     size_t bufferSize);
 
     static void Accept(cross_types::socket_type& t_socket, cross_types::socket_type& listeningSocket,
                 cross_types::socket_address* socketAddress, cross_types::address_len* addressLength);

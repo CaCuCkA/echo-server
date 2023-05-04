@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 set(PROJECT_NAME_ONE sync_echo_server)
 set(PROJECT_NAME_TWO multi_echo_server)
+set(PROJECT_NAME_THREE async_echo_server)
 
 project(${PROJECT_NAME_ONE} LANGUAGES CXX)
 project(${PROJECT_NAME_TWO} LANGUAGES CXX)
@@ -43,10 +44,14 @@ add_executable( ${PROJECT_NAME_ONE} 			${COMMON_FILES}
 
 add_executable( ${PROJECT_NAME_TWO} 			${COMMON_FILES}
 				${INC}/MultiEchoServer.h		${SRC}/MultiEchoServer.cpp )
+
+add_executable( ${PROJECT_NAME_THREE} 			${COMMON_FILES}
+				${INC}/AsyncEchoServer.h		${SRC}/AsyncEchoServer.cpp )
 ####################################################################
 
 target_compile_definitions(${PROJECT_NAME_ONE} PRIVATE SYNC)
 target_compile_definitions(${PROJECT_NAME_TWO} PRIVATE MULTI)
+target_compile_definitions(${PROJECT_NAME_THREE} PRIVATE ASYNC)
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
@@ -58,6 +63,13 @@ set_target_properties( ${PROJECT_NAME_ONE} PROPERTIES
         )
 
 set_target_properties( ${PROJECT_NAME_TWO} PROPERTIES
+		CXX_STANDARD 17
+		CXX_STANDARD_REQUIRED ON
+		CXX_EXTENSIONS OFF
+		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+		)
+
+set_target_properties( ${PROJECT_NAME_THREE} PROPERTIES
 		CXX_STANDARD 17
 		CXX_STANDARD_REQUIRED ON
 		CXX_EXTENSIONS OFF

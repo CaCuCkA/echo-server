@@ -47,9 +47,30 @@ void Server::Listen(cross_types::socket_type &t_socket)
     }
 }
 
-void Server::MakeSocketNonBlocking(cross_types::socket_type &t_socket)
+void Server::Select(cross_types::socket_type& t_socket, fd_set* readfds, fd_set* writefds, fd_set* exceptionfds,
+                    timeval* timeout)
 {
-    SetSocketFlag(t_socket, NON_BLOCK, WIN_FLAG);
+    auto error = select(t_socket + 1, readfds, writefds, exceptionfds, timeout);
+    if (error == EC_CANT_SELECT_SOCKET)
+    {
+        if (errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN)
+        {
+            Select(t_socket, readfds, writefds, exceptionfds, timeout);
+            return;
+        }
+        throw EXCEPTION(EC_CANT_SELECT_SOCKET, "Failed to select socket");
+    }
+}
+
+void Server::SetSocketOptions(cross_types::socket_type &t_socket, int level, int socketOption, cross_types::option_type buffer,
+                              size_t bufferSize)
+{
+    auto error = setsockopt(t_socket, level, socketOption, buffer, bufferSize);
+    if (error == EC_CANT_SET_SOCKET_OPTION)
+    {
+        CLOSE_SOCKET(t_socket);
+        throw EXCEPTION(EC_CANT_SET_SOCKET_OPTION, "Failed to set socket option");
+    }
 }
 
 void Server::Accept(cross_types::socket_type &t_socket, cross_types::socket_type &listeningSocket,
