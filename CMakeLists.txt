@@ -58,6 +58,7 @@ endif(UNIX)
 
 if(WIN32)
 	target_link_libraries(${PROJECT_NAME_ONE} PRIVATE ws2_32)
+	target_link_libraries(${PROJECT_NAME_ONE} PRIVATE -static -static-libgcc -static-libstdc++)
 endif(WIN32)
 
 set_target_properties( ${PROJECT_NAME_ONE} PROPERTIES

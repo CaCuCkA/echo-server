@@ -17,11 +17,19 @@ cross_types::address_type Server::MakeAddress(std::string &&t_address, uint16_t 
 
 void Server::Create(cross_types::socket_type &t_socket)
 {
+    #if defined(_WIN32) || defined(WIN32)
+        WSADATA wsaData;
+        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+            WSACleanup();
+            throw EXCEPTION(EC_CANT_CREATE_SOCKET, "Can`t create socket");
+        }
+    #endif
+
     t_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (t_socket == EC_CANT_CREATE_SOCKET)
+    if (t_socket == INVALID_SOCKET)
     {
         CLOSE_SOCKET(t_socket);
-        throw EXCEPTION(static_cast<int>(EC_CANT_CREATE_SOCKET), "Can`t create socket");
+        throw EXCEPTION(EC_CANT_CREATE_SOCKET, "Can`t create socket");
     }
 }
 

@@ -19,7 +19,7 @@ inline std::tuple<std::string, uint16_t, uint16_t> ParseValues(char *argv[])
 #else
 inline std::tuple<std::string, uint16_t> ParseValues(char *argv[])
 {
-    return std::make_tuple(std::string(argv[1]), atoi(argv[2]));
+    return std::make_tuple(std::string(argv[1]), std::stoi(argv[2]));
 };
 #endif //MULTI
 
