@@ -3,12 +3,12 @@
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 # pragma once
-#endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
+#endif
 
 #if defined(_WIN32) || defined(WIN32)
+#include <winsock2.h>
 #include <windows.h>
 #include <ws2tcpip.h>
-#include <winsock2.h>
 #pragma comment(lib, "Ws2_32.lib")
 #elif defined(__linux__)
 #include <unistd.h>
@@ -19,7 +19,7 @@
 #include <unistd.h>
 #else
 #error "Cannot detect OS"
-#endif // detect os for including libs
+#endif
 
 namespace cross_types
 {
@@ -27,7 +27,7 @@ namespace cross_types
     typedef SOCKET socket_type;
     typedef SOCKADDR_IN address_type;
     typedef SOCKADDR socket_address;
-    typedef int address_length;
+    typedef int address_len;
     typedef int recv_type;
     typedef int send_type;
     typedef char* option_type;

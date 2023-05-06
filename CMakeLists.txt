@@ -23,9 +23,7 @@ if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif ()
 
-
 include( cmake/CompilerWarnings.cmake )
-
 
 include_directories( include )
 include_directories( src )
@@ -54,7 +52,13 @@ target_compile_definitions(${PROJECT_NAME_ONE} PRIVATE SYNC)
 target_compile_definitions(${PROJECT_NAME_TWO} PRIVATE MULTI)
 target_compile_definitions(${PROJECT_NAME_THREE} PRIVATE ASYNC)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+if(UNIX)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif(UNIX)
+
+if(WIN32)
+	target_link_libraries(${PROJECT_NAME_ONE} PRIVATE ws2_32)
+endif(WIN32)
 
 set_target_properties( ${PROJECT_NAME_ONE} PROPERTIES
         CXX_STANDARD 17

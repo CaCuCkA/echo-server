@@ -21,7 +21,7 @@ void Server::Create(cross_types::socket_type &t_socket)
     if (t_socket == EC_CANT_CREATE_SOCKET)
     {
         CLOSE_SOCKET(t_socket);
-        throw EXCEPTION(EC_CANT_CREATE_SOCKET, "Can`t create socket");
+        throw EXCEPTION(static_cast<int>(EC_CANT_CREATE_SOCKET), "Can`t create socket");
     }
 }
 
