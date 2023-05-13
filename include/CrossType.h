@@ -21,6 +21,12 @@
 #error "Cannot detect OS"
 #endif
 
+#ifdef TBB_LIB
+#include <tbb/tbb.h>
+#else
+#include "ThreadSafeQueue.h"
+#endif
+
 namespace cross_types
 {
 #if defined(_WIN32) || defined(WIN32)
@@ -44,5 +50,13 @@ namespace cross_types
 #define NON_BLOCK O_NONBLOCK
 #define WIN_FLAG -1
 #endif // defined(_WIN32) || defined(WIN32)
+
+#ifdef TBB_LIB
+    template <typename ValueType>
+    using queue_type =  tbb::concurrent_bounded_queue<ValueType>;
+#else
+    template <typename ValueType>
+    using queue_type =  ThreadSafeQueue<ValueType>;
+#endif
 }
 #endif //ECHO_SERVER_CROSS_TYPE_H

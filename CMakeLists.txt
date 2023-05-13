@@ -48,6 +48,8 @@ add_executable( ${PROJECT_NAME_THREE} 			${COMMON_FILES}
 				${INC}/AsyncEchoServer.h		${SRC}/AsyncEchoServer.cpp )
 ####################################################################
 
+target_compile_definitions(${PROJECT_NAME_TWO} PRIVATE TBB_LIB)
+
 target_compile_definitions(${PROJECT_NAME_ONE} PRIVATE SYNC)
 target_compile_definitions(${PROJECT_NAME_TWO} PRIVATE MULTI)
 target_compile_definitions(${PROJECT_NAME_THREE} PRIVATE ASYNC)
@@ -60,6 +62,10 @@ if(WIN32)
 	target_link_libraries(${PROJECT_NAME_ONE} PRIVATE ws2_32)
 	target_link_libraries(${PROJECT_NAME_ONE} PRIVATE -static -static-libgcc -static-libstdc++)
 endif(WIN32)
+
+find_package(TBB REQUIRED)
+include_directories(${TBB_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME_TWO} TBB::tbb)
 
 set_target_properties( ${PROJECT_NAME_ONE} PROPERTIES
         CXX_STANDARD 17

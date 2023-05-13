@@ -21,7 +21,7 @@ public:
     ThreadSafeQueue(ThreadSafeQueue&&) = delete;
     ThreadSafeQueue& operator=(ThreadSafeQueue&&) = delete;
 
-    void Enque(T& val)
+    void push(T& val)
     {
         {
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -30,7 +30,7 @@ public:
         m_not_empty.notify_one();
     }
 
-    void Deque(T& val)
+    void pop(T& val)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         while (m_buffer.empty())

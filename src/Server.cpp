@@ -26,7 +26,7 @@ void Server::Create(cross_types::socket_type &t_socket)
     #endif
 
     t_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (t_socket == INVALID_SOCKET)
+    if (t_socket == EC_CANT_CREATE_SOCKET)
     {
         CLOSE_SOCKET(t_socket);
         throw EXCEPTION(EC_CANT_CREATE_SOCKET, "Can`t create socket");

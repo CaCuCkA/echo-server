@@ -1,13 +1,13 @@
 #include "MultiEchoServer.h"
-#include "ThreadSafeQueue.h"
+#include "CrossType.h"
 
 #include <thread>
 #include <vector>
 #include <cstring>
 
 MultiEchoServer::MultiEchoServer(std::string &&t_address, uint16_t t_port, uint8_t t_amountOfThreads)
-    :
-m_amountOfThreads(t_amountOfThreads)
+        :
+        m_amountOfThreads(t_amountOfThreads)
 {
     cross_types::address_type serverAddress = MakeAddress(std::move(t_address), t_port);
     Create(m_socket);
@@ -29,8 +29,8 @@ void MultiEchoServer::MakeAddressReused()
 
 void MultiEchoServer::Run()
 {
-    ThreadSafeQueue<socket_type> usedSocketQueue;
-    ThreadSafeQueue<socket_type> refreshedSocketQueue;
+    cross_types::queue_type<socket_type> usedSocketQueue;
+    cross_types::queue_type<socket_type> refreshedSocketQueue;
     std::vector<std::thread> threads;
 
     socket_type clientSocket;
@@ -38,37 +38,37 @@ void MultiEchoServer::Run()
     for (uint8_t i = 0; i < m_amountOfThreads; ++i)
     {
         socket_type socket;
-        usedSocketQueue.Enque(socket);
-        std::thread clientThread {[&usedSocketQueue, &refreshedSocketQueue, this]()
-        {
-            char buffer[BUFFER_SIZE];
-            cross_types::recv_type bytesReceive;
-            socket_type clientSocket;
+        usedSocketQueue.push(socket);
+        std::thread clientThread {[&usedSocketQueue, &refreshedSocketQueue]()
+                                  {
+                                      char buffer[BUFFER_SIZE];
+                                      cross_types::recv_type bytesReceive;
+                                      socket_type clientSocket;
 
-            while (true)
-            {
-                refreshedSocketQueue.Deque(clientSocket);
-                memset(buffer, 0, BUFFER_SIZE);
-                try
-                {
-                    bytesReceive = Read(clientSocket, buffer, BUFFER_SIZE);
-                    Send(clientSocket, buffer, bytesReceive);
-                }
-                catch(...)
-                {
-                    break;
-                }
-                CLOSE_SOCKET(clientSocket);
-                usedSocketQueue.Enque(clientSocket);
-            }
-        }};
+                                      while (true)
+                                      {
+                                          refreshedSocketQueue.pop(clientSocket);
+                                          memset(buffer, 0, BUFFER_SIZE);
+                                          try
+                                          {
+                                              bytesReceive = Read(clientSocket, buffer, BUFFER_SIZE);
+                                              Send(clientSocket, buffer, bytesReceive);
+                                          }
+                                          catch(...)
+                                          {
+                                              break;
+                                          }
+                                          CLOSE_SOCKET(clientSocket);
+                                          usedSocketQueue.push(clientSocket);
+                                      }
+                                  }};
 
         clientThread.detach();
     }
 
     while (true)
     {
-        usedSocketQueue.Deque(clientSocket);
+        usedSocketQueue.pop(clientSocket);
         try
         {
             Accept(clientSocket, m_socket);
@@ -77,6 +77,6 @@ void MultiEchoServer::Run()
         {
             continue;
         }
-        refreshedSocketQueue.Enque(clientSocket);
+        refreshedSocketQueue.push(clientSocket);
     }
 }
