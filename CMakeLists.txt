@@ -23,7 +23,9 @@ if (NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif ()
 
+
 include( cmake/CompilerWarnings.cmake )
+
 
 include_directories( include )
 include_directories( src )
@@ -34,8 +36,10 @@ set( INC ${CMAKE_SOURCE_DIR}/include )
 set( COMMON_FILES 				${SRC}/Main.cpp
 	 ${INC}/Exception.h 		${SRC}/Exception.cpp
 	 ${INC}/Server.h 		 	${SRC}/Server.cpp
+	 ${INC}/Handshake.h			${SRC}/Handshake.cpp
 	 ${INC}/ThreadSafeQueue.h
 	 ${INC}/CrossType.h
+	 ${INC}/CrossFunctions.h
 	 ${INC}/Utils.h )
 
 add_executable( ${PROJECT_NAME_ONE} 			${COMMON_FILES}
@@ -46,26 +50,29 @@ add_executable( ${PROJECT_NAME_TWO} 			${COMMON_FILES}
 
 add_executable( ${PROJECT_NAME_THREE} 			${COMMON_FILES}
 				${INC}/AsyncEchoServer.h		${SRC}/AsyncEchoServer.cpp )
-####################################################################
 
-target_compile_definitions(${PROJECT_NAME_TWO} PRIVATE TBB_LIB)
+####################################################################
 
 target_compile_definitions(${PROJECT_NAME_ONE} PRIVATE SYNC)
 target_compile_definitions(${PROJECT_NAME_TWO} PRIVATE MULTI)
 target_compile_definitions(${PROJECT_NAME_THREE} PRIVATE ASYNC)
 
-if(UNIX)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-endif(UNIX)
+find_package(Boost 1.71.0 COMPONENTS program_options system REQUIRED)
+target_include_directories(${PROJECT_NAME_ONE} PRIVATE ${Boost_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME_ONE} Boost::boost)
 
-if(WIN32)
-	target_link_libraries(${PROJECT_NAME_ONE} PRIVATE ws2_32)
-	target_link_libraries(${PROJECT_NAME_ONE} PRIVATE -static -static-libgcc -static-libstdc++)
-endif(WIN32)
+target_include_directories(${PROJECT_NAME_TWO} PRIVATE ${Boost_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME_TWO} Boost::boost)
 
-find_package(TBB REQUIRED)
-include_directories(${TBB_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME_TWO} TBB::tbb)
+target_include_directories(${PROJECT_NAME_THREE} PRIVATE ${Boost_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME_THREE} Boost::boost)
+
+find_package(OpenSSL REQUIRED)
+
+target_link_libraries(${PROJECT_NAME_ONE} OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(${PROJECT_NAME_TWO} OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(${PROJECT_NAME_THREE} OpenSSL::SSL OpenSSL::Crypto)
+
 
 set_target_properties( ${PROJECT_NAME_ONE} PROPERTIES
         CXX_STANDARD 17
@@ -87,7 +94,6 @@ set_target_properties( ${PROJECT_NAME_THREE} PROPERTIES
 		CXX_EXTENSIONS OFF
 		RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
 		)
-
 ####################################################################
 
 # Include CMake setup
