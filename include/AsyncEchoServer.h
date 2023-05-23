@@ -13,6 +13,9 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/strand.hpp>
+
+#define MAX_EVENTS 32
+
 using cross_types::socket_type;
 
 class AsyncEchoServer : public Server
@@ -30,13 +33,9 @@ public:
     void Run() override;
 
 private:
-    void MakeAddressReused();
-    void CleanBuffer();
-
-private:
-    socket_type m_socket;
-    fd_set m_socketsSet;
-    char m_buffer[BUFFER_SIZE];
+    socket_type m_socket{};
+    int m_socketsSet{};
+    epoll_event m_events[MAX_EVENTS];
 };
 
 #endif // ECHO_SERVER_ASYNC_ECHO_SERVER_H

@@ -11,20 +11,14 @@ MultiEchoServer::MultiEchoServer(std::string &&t_address, uint16_t t_port, uint8
 {
     cross_types::address_type serverAddress = MakeAddress(std::move(t_address), t_port);
     Create(m_socket);
-    MakeAddressReused();
+    MakeAddressReused(m_socket);
     Bind(m_socket, serverAddress);
     Listen(m_socket);
 }
 
-MultiEchoServer::~MultiEchoServer() noexcept
+MultiEchoServer::~MultiEchoServer()
 {
     CLOSE_SOCKET(m_socket);
-}
-
-void MultiEchoServer::MakeAddressReused()
-{
-    int optionValue = 1;
-    SetSocketOptions(m_socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&optionValue), sizeof(int));
 }
 
 void MultiEchoServer::Run()
@@ -41,24 +35,12 @@ void MultiEchoServer::Run()
         usedSocketQueue.push(socket);
         std::thread clientThread {[&usedSocketQueue, &refreshedSocketQueue]()
                                   {
-                                      char buffer[BUFFER_SIZE];
-                                      cross_types::recv_type bytesReceive;
                                       socket_type clientSocket;
 
                                       while (true)
                                       {
                                           refreshedSocketQueue.pop(clientSocket);
-                                          memset(buffer, 0, BUFFER_SIZE);
-                                          try
-                                          {
-                                              bytesReceive = Read(clientSocket, buffer, BUFFER_SIZE);
-                                              Send(clientSocket, buffer, bytesReceive);
-                                          }
-                                          catch(...)
-                                          {
-                                              break;
-                                          }
-                                          CLOSE_SOCKET(clientSocket);
+                                          HandleClientConnection(clientSocket);
                                           usedSocketQueue.push(clientSocket);
                                       }
                                   }};

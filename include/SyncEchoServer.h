@@ -5,12 +5,16 @@
 # pragma once
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
+#include <string>
+#include <boost/beast/http.hpp>
+#include <boost/beast/core/flat_buffer.hpp>
+
 #include "Server.h"
 #include "CrossType.h"
 
-#include <string>
-
 using cross_types::socket_type;
+
+namespace http = boost::beast::http;
 
 class SyncEchoServer : public Server
 {
@@ -31,11 +35,8 @@ public:
     }
 
     void Run() override;
+
 private:
-    void MakeAddressReused();
-    void CleanBuffer();
-private:
-    socket_type m_socket;
-    char m_buffer[BUFFER_SIZE];
+    socket_type m_socket{};
 };
 #endif // ECHO_SERVER_SYNC_SERVER_H

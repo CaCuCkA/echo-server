@@ -1,55 +1,65 @@
+#include <iostream>
+
 #include "AsyncEchoServer.h"
 
 AsyncEchoServer::AsyncEchoServer(std::string &&t_address, uint16_t t_port)
 {
     cross_types::address_type serverAddress = MakeAddress(std::move(t_address), t_port);
     Create(m_socket);
-    MakeAddressReused();
+    MakeAddressReused(m_socket);
+
     Bind(m_socket, serverAddress);
+    SetSocketNonblocking(m_socket);
     Listen(m_socket);
+
+    m_socketsSet = epoll_create(1);
+    EpollCtlAdd(m_socketsSet, m_socket, EPOLLIN | EPOLLOUT | EPOLLET);
 }
 
-AsyncEchoServer::~AsyncEchoServer() noexcept
+AsyncEchoServer::~AsyncEchoServer()
 {
     CLOSE_SOCKET(m_socket);
 }
 
-void AsyncEchoServer::MakeAddressReused()
-{
-    int optionValue = 1;
-    SetSocketOptions(m_socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&optionValue), sizeof(int));
-}
-
-void AsyncEchoServer::CleanBuffer()
-{
-    memset(m_buffer, 0, BUFFER_SIZE);
-}
-
 void AsyncEchoServer::Run()
 {
+    int newFileDescriptors;
     cross_types::socket_type clientSocket;
-    cross_types::recv_type bytesRecv;
+
     while (true)
     {
-        FD_ZERO(&m_socketsSet);
-        FD_SET(m_socket, &m_socketsSet);
         try
         {
-            Select(m_socket, &m_socketsSet);
+            newFileDescriptors = epoll_wait(m_socketsSet, m_events, MAX_EVENTS, -1);
 
-            if (FD_ISSET(m_socket, &m_socketsSet))
+            for (int i = 0; i < newFileDescriptors; ++i)
             {
-                Accept(clientSocket, m_socket);
-                CleanBuffer();
-                bytesRecv = Read(clientSocket, m_buffer, BUFFER_SIZE);
-                Send(clientSocket, m_buffer, bytesRecv);
+                if (m_events[i].data.fd == m_socket)
+                {
+                    Accept(clientSocket, m_socket);
+                    SetSocketNonblocking(clientSocket);
+                    EpollCtlAdd(m_socketsSet, clientSocket,  EPOLLIN | EPOLLET | EPOLLRDHUP | EPOLLHUP);
+                }
+                else if (m_events[i].events & EPOLLIN)
+                {
+
+                    HandleClientConnection(m_events[i].data.fd);
+                }
+
+                if (m_events[i].events & (EPOLLRDHUP | EPOLLHUP))
+                {
+                    epoll_ctl(m_socketsSet,  EPOLL_CTL_DEL, m_events[i].data.fd, nullptr);
+                    CLOSE_SOCKET(m_events[i].data.fd);
+                    continue;
+                }
             }
         }
+
         catch (...)
         {
+            std::cout << "Catch an error!" << std::endl;
             CLOSE_SOCKET(clientSocket);
             break;
         }
-        CLOSE_SOCKET(clientSocket);
     }
 }
