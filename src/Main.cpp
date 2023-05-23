@@ -1,6 +1,6 @@
 #include "Utils.h"
 #include "Exception.h"
-
+#include "Handshake.h"
 #ifdef MULTI
 #include "MultiEchoServer.h"
 #elif SYNC
@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
 #endif
 
     server.Run();
+
 
     return 0;
 }
